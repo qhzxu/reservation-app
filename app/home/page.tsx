@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Header } from "@/components/header"
@@ -7,15 +8,24 @@ import { ProtectedRoute } from "@/components/protected-route"
 import { useAuthStore } from "@/lib/stores/auth-store"
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel"
 
+interface Category {
+  category_id: number
+  category_name: string
+}
+
 export default function HomePage() {
   const { user } = useAuthStore()
-  // 샘플 카테고리/서비스 목록
-  const categories = [
-    { name: "미용", icon: "💇", href: "/services?cat=beauty" },
-    { name: "헬스", icon: "🏋️", href: "/services?cat=health" },
-    { name: "교육", icon: "📚", href: "/services?cat=edu" },
-    { name: "기타", icon: "✨", href: "/services" },
-  ]
+  const [categories, setCategories] = useState<Category[]>([])
+
+  useEffect(() => {
+    // 홈 진입 시 카테고리 fetch
+    fetch("http://localhost:8383/product/category")
+      .then(res => res.json())
+      .then(data => setCategories(data))
+      .catch(err => console.error("카테고리 로딩 실패:", err))
+  }, [])
+
+  // 샘플 서비스 목록
   const services = [
     { name: "헤어샵 예약", desc: "전문 미용실 예약 서비스", href: "/services/1" },
     { name: "PT 예약", desc: "헬스 트레이너와 1:1 예약", href: "/services/2" },
@@ -41,16 +51,20 @@ export default function HomePage() {
           <h2 className="text-2xl font-bold text-gray-800 mb-4">카테고리</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {categories.map((cat) => (
-              <Link key={cat.name} href={cat.href} className="bg-white rounded-lg shadow flex flex-col items-center justify-center py-6 hover:bg-blue-50 transition">
-                <span className="text-3xl mb-2">{cat.icon}</span>
-                <span className="text-lg font-semibold text-gray-700">{cat.name}</span>
+              <Link
+                key={cat.category_id}
+                href={`/services?cat=${cat.category_id}`}
+                className="bg-white rounded-lg shadow flex flex-col items-center justify-center py-6 hover:bg-blue-50 transition"
+              >
+                <span className="text-3xl mb-2"></span>
+                <span className="text-lg font-semibold text-gray-700">{cat.category_name}</span>
               </Link>
             ))}
           </div>
         </section>
 
         {/* 서비스 목록 (캐러셀) */}
-        <section className="w-full max-w-4xl mx-auto px-4 mb-8">
+        {/* <section className="w-full max-w-4xl mx-auto px-4 mb-8">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-800">추천 서비스</h2>
             <Link href="/services">
@@ -72,10 +86,10 @@ export default function HomePage() {
             <CarouselPrevious />
             <CarouselNext />
           </Carousel>
-        </section>
+        </section> */}
 
         {/* 바로가기 */}
-        <section className="w-full max-w-4xl mx-auto px-4 mb-12">
+        {/* <section className="w-full max-w-4xl mx-auto px-4 mb-12">
           <h2 className="text-xl font-bold text-gray-800 mb-4">빠른 이동</h2>
           <div className="flex gap-4">
             <Link href="/reservations">
@@ -85,7 +99,7 @@ export default function HomePage() {
               <Button className="bg-gray-600 hover:bg-gray-700">내 정보</Button>
             </Link>
           </div>
-        </section>
+        </section> */}
       </main>
     </ProtectedRoute>
   )

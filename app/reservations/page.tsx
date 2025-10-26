@@ -70,8 +70,8 @@ function ReservationsList() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="text-gray-600">시작: {new Date(reservation.startTime).toLocaleString("ko-KR")}</p>
-            <p className="text-gray-600">종료: {new Date(reservation.endTime).toLocaleString("ko-KR")}</p>
+            <p className="text-gray-600">종료: {new Date(reservation.date).toLocaleString("ko-KR")}</p>
+            <p className="text-gray-600">시작: {new Date(reservation.time).toLocaleString("ko-KR")}</p>
             {reservation.status !== "CANCELLED" && (
               <Button onClick={() => handleCancel(reservation.id)} variant="destructive" size="sm">
                 취소

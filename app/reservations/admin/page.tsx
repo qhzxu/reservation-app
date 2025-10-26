@@ -50,7 +50,7 @@ function AdminReservationsList() {
             <tr key={reservation.id} className="border-b hover:bg-gray-50">
               <td className="px-4 py-2">{reservation.id.slice(0, 8)}</td>
               <td className="px-4 py-2">{reservation.userId}</td>
-              <td className="px-4 py-2">{new Date(reservation.startTime).toLocaleString("ko-KR")}</td>
+              {/* <td className="px-4 py-2">{new Date(reservation.startTime).toLocaleString("ko-KR")}</td> */}
               <td className="px-4 py-2">
                 <span
                   className={`px-3 py-1 rounded-full text-sm ${
@@ -74,7 +74,7 @@ function AdminReservationsList() {
 
 export default function AdminReservationsPage() {
   return (
-    <ProtectedRoute requiredRole="ADMIN">
+    <ProtectedRoute>
       <Header />
       <main className="max-w-7xl mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-gray-900 mb-8">모든 예약 (관리자)</h1>
