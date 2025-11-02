@@ -35,6 +35,28 @@ export const serviceApi = {
     }))
   },
 
+  // 카테고리별 서비스 목록 조회
+  async getServicesByCategory(categoryId: string | number): Promise<Service[]> {
+    const client = getApiClient()
+    const response = await client.get("/product", {
+      params: { category: categoryId },
+    })
+
+    return response.data.map((p: any) => ({
+      id: String(p.productId),
+      storeId: p.storeId,
+      storeName: p.storeName,
+      name: p.name,
+      description: p.description,
+      category: p.category,
+      price: p.price,
+      status: p.status,
+      available: p.status === "ACTIVE",
+      createdAt: p.createdAt,
+      updatedAt: p.updatedAt,
+    }))
+  },
+
   // 단일 서비스 조회
   async getService(id: string): Promise<Service | null> {
     const client = getApiClient()
@@ -48,7 +70,7 @@ export const serviceApi = {
       storeName: p.storeName,
       name: p.name,
       description: p.description,
-      category: p.category,
+      category: p.category?.name,
       price: p.price,
       status: p.status,
       available: p.status === "ACTIVE",

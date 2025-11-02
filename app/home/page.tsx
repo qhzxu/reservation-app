@@ -26,14 +26,14 @@ export default function HomePage() {
   }, [])
 
   // 샘플 서비스 목록
-  const services = [
-    { name: "헤어샵 예약", desc: "전문 미용실 예약 서비스", href: "/services/1" },
-    { name: "PT 예약", desc: "헬스 트레이너와 1:1 예약", href: "/services/2" },
-    { name: "영어 과외", desc: "원어민 영어 과외 신청", href: "/services/3" },
-    { name: "피부관리", desc: "피부 전문가와 예약", href: "/services/4" },
-    { name: "요가 클래스", desc: "요가 강사와 그룹 수업", href: "/services/5" },
-    { name: "수학 과외", desc: "수학 전문 과외 신청", href: "/services/6" },
-  ]
+  // const services = [
+  //   { name: "헤어샵 예약", desc: "전문 미용실 예약 서비스", href: "/services/1" },
+  //   { name: "PT 예약", desc: "헬스 트레이너와 1:1 예약", href: "/services/2" },
+  //   { name: "영어 과외", desc: "원어민 영어 과외 신청", href: "/services/3" },
+  //   { name: "피부관리", desc: "피부 전문가와 예약", href: "/services/4" },
+  //   { name: "요가 클래스", desc: "요가 강사와 그룹 수업", href: "/services/5" },
+  //   { name: "수학 과외", desc: "수학 전문 과외 신청", href: "/services/6" },
+  // ]
 
   return (
     <ProtectedRoute>
@@ -49,18 +49,25 @@ export default function HomePage() {
         {/* 카테고리 */}
         <section className="w-full max-w-4xl mx-auto px-4 mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">카테고리</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Link
+            href="/services"
+            className="bg-white rounded-lg shadow flex flex-col items-center justify-center py-6 hover:bg-blue-50 transition"
+            >
+            <span className="text-lg font-semibold text-gray-700">전체</span>
+            </Link>
             {categories.map((cat) => (
-              <Link
-                key={cat.category_id}
-                href={`/services?cat=${cat.category_id}`}
-                className="bg-white rounded-lg shadow flex flex-col items-center justify-center py-6 hover:bg-blue-50 transition"
-              >
-                <span className="text-3xl mb-2"></span>
-                <span className="text-lg font-semibold text-gray-700">{cat.category_name}</span>
-              </Link>
+           <Link
+              key={cat.category_id}
+              href={`/services?catId=${cat.category_id}&catName=${encodeURIComponent(cat.category_name)}`} // ID + 이름
+              className="bg-white rounded-lg shadow flex flex-col items-center justify-center py-6 hover:bg-blue-50 transition"
+            >
+              <span className="text-lg font-semibold text-gray-700">{cat.category_name}</span>
+            </Link>
+
             ))}
-          </div>
+            </div>
+
         </section>
 
         {/* 서비스 목록 (캐러셀) */}

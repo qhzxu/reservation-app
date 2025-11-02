@@ -28,7 +28,7 @@ export default function ReservationCompletePage() {
             <div className="flex justify-center gap-4 mt-6">
               <Button
                 className="bg-green-600 hover:bg-green-700"
-                onClick={() => router.push("/user/reservations")}
+                onClick={() => router.push("/reservations")}
               >
                 예약 내역 보기
               </Button>

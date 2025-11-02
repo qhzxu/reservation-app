@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { serviceApi, type Service } from "@/lib/api/service-api"
 import { reservationApi } from "@/lib/api/reservation-api"
 import { format } from "date-fns"
+import { log } from "console"
 
 function ServiceDetail() {
   const params = useParams()
@@ -29,6 +30,7 @@ function ServiceDetail() {
       try {
         const data = await serviceApi.getService(params.id as string)
         setService(data)
+        console.log(data)
       } catch (err: any) {
         setError("서비스 로드 실패")
         console.error(err)
