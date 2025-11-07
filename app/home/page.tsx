@@ -9,8 +9,9 @@ import { useAuthStore } from "@/lib/stores/auth-store"
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel"
 
 interface Category {
-  category_id: number
-  category_name: string
+  categoryId: number
+  categoryName: string
+  is_active: boolean
 }
 
 export default function HomePage() {
@@ -58,11 +59,11 @@ export default function HomePage() {
             </Link>
             {categories.map((cat) => (
            <Link
-              key={cat.category_id}
-              href={`/services?catId=${cat.category_id}&catName=${encodeURIComponent(cat.category_name)}`} // ID + 이름
+              key={cat.categoryId}
+              href={`/services?catId=${cat.categoryId}&catName=${encodeURIComponent(cat.categoryName)}`} // ID + 이름
               className="bg-white rounded-lg shadow flex flex-col items-center justify-center py-6 hover:bg-blue-50 transition"
             >
-              <span className="text-lg font-semibold text-gray-700">{cat.category_name}</span>
+              <span className="text-lg font-semibold text-gray-700">{cat.categoryName}</span>
             </Link>
 
             ))}

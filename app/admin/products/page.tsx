@@ -27,6 +27,16 @@ export default function AdminProductsPage() {
       <main className="min-h-screen pt-16 p-6 bg-gray-50">
         <AdminHeader title="상품 관리" />
 
+ {/* 상단 버튼 */}
+    <div className="max-w-7xl mx-auto flex justify-end mb-4">
+      <Link
+        href="/admin/products/new"
+        className="px-4 py-2 bg-green-500 text-white rounded-lg font-medium hover:bg-green-600 transition-colors shadow-md"
+      >
+        상품 추가
+      </Link>
+    </div>
+
         <div className="max-w-7xl mx-auto mt-8">
           {products.length === 0 ? (
             <div className="bg-white p-6 rounded-xl shadow text-gray-500 text-center border-2 border-dashed">

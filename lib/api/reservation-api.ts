@@ -1,5 +1,5 @@
 // lib/api/reservation-api.ts
-import { getApiClient } from "@/lib/api-client"
+import { getApiClient } from "@/lib/api/api-client"
 
 // JSON 응답과 맞춘 타입
 export interface Reservation {

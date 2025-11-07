@@ -2,54 +2,49 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import AdminHeader from "@/components/AdminHeader"
+import { adminAuthApi } from "@/lib/api/admin-auth-api"
 
-export default function AdminLogin() {
-  const [username, setUsername] = useState("admin")
+export default function AdminLoginPage() {
+  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
   const router = useRouter()
 
-  const handleLogin = () => {
-    setError("")
-
-    // 임시 테스트용 로그인
-    if (username === "admin" && password === "1234") {
-      localStorage.setItem("adminToken", "test-token") // 임시 토큰
-      router.push("/admin/dashboard")
-    } else {
-      setError("아이디 또는 비밀번호가 올바르지 않습니다.")
+  const handleLogin = async () => {
+    try {
+      const data = await adminAuthApi.login({ email, password })
+      localStorage.setItem("adminToken", data.accessToken)
+      router.push("/admin/home")  // 로그인 성공 후 관리자 홈으로 이동
+    } catch (e) {
+      console.error("로그인 실패", e)
+      alert("로그인 실패")
     }
   }
 
   return (
-    <main className="min-h-screen pt-16 p-6 bg-gray-50">
-      <AdminHeader title="관리자 로그인" />
-      <div className="max-w-md mx-auto mt-8 bg-white p-6 rounded-md shadow-md">
-        <label className="text-xs font-medium">아이디</label>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-8 rounded-xl shadow-md w-80">
+        <h2 className="text-2xl font-bold mb-6">관리자 로그인</h2>
         <input
-          className="w-full border rounded p-2 mb-3"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          type="email"
+          placeholder="이메일"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full p-3 mb-4 border rounded-lg"
         />
-
-        <label className="text-xs font-medium">비밀번호</label>
         <input
           type="password"
-          className="w-full border rounded p-2 mb-4"
+          placeholder="비밀번호"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-3 mb-4 border rounded-lg"
         />
-
         <button
           onClick={handleLogin}
-          className="w-full py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+          className="w-full bg-blue-600 text-white p-3 rounded-lg font-semibold hover:bg-blue-700"
         >
           로그인
         </button>
-
-        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       </div>
-    </main>
+    </div>
   )
 }

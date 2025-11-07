@@ -1,4 +1,4 @@
-import { getApiClient } from "@/lib/api-client"
+import { getApiClient } from "@/lib/api/api-client"
 
 interface LoginRequest {
   email: string
@@ -17,7 +17,7 @@ interface AuthResponse {
   userId: number
   userName: string
   email: string
-  role: "USER" | "ADMIN"
+  role: "USER" | "STORE"
 }
 
 export const authApi = {
@@ -38,4 +38,5 @@ export const authApi = {
     const response = await client.get("/user/me")
     return response.data
   },
+  
 }

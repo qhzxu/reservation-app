@@ -28,12 +28,13 @@ export const adminReservationApi = {
     }
   },
 
-  async changeStatus(reservationId: number, status: string): Promise<void> {
-    try {
-      const client = getAdminApiClient()
-      await client.put(`/store/reservations/${reservationId}/status`, { status })
-    } catch (e) {
-      console.error("예약 상태 변경 실패:", e)
-    }
-  },
+async changeStatus(reservationId: number, status: string): Promise<void> {
+  try {
+    const client = getAdminApiClient()
+    await client.patch(`/store/reservations/update`, { reservationId, status })
+  } catch (e) {
+    console.error("예약 상태 변경 실패:", e)
+  }
+}
+
 }

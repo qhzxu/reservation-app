@@ -1,18 +1,21 @@
 import { getAdminApiClient } from "./admin-api-client"
 
-// Product 타입 정의 (category는 id/name 구조, 없을 수도 있음)
+// Product 타입 정의
 export interface Product {
-  productId: number
+  productId?: number
   name: string
   description?: string | null
   price?: number | null
-  createdAt?: string | null
-  updatedAt?: string | null
   status?: string | null
   storeId?: number | null
-  store?: any | null
-  reservationHdr?: any | null
   category?: { id: number; name: string } | null
+}
+
+export interface ProductForm {
+  name: string
+  description?: string | null
+  price?: number | null
+  categoryId?: number | null
 }
 
 export const adminProductApi = {
@@ -35,6 +38,41 @@ export const adminProductApi = {
     } catch (e) {
       console.error("상품 상세 로드 실패:", e)
       return null
+    }
+  },
+
+  async createProduct(form: ProductForm): Promise<Product> {
+    try {
+      const client = getAdminApiClient()
+      const response = await client.post("/store/products", form)
+      return response.data
+    } catch (e) {
+      console.error("상품 생성 실패:", e)
+      throw e
+    }
+  },
+
+  async updateProduct(productId: number, form: ProductForm): Promise<Product> {
+    try {
+      const client = getAdminApiClient()
+      const response = await client.patch("/store/products", {
+        productId,
+        ...form, // form에 담긴 name, description, price, categoryId 그대로 사용
+      })
+      return response.data
+    } catch (e) {
+      console.error("상품 수정 실패:", e)
+      throw e
+    }
+  },
+
+  async deleteProduct(id: number): Promise<void> {
+    try {
+      const client = getAdminApiClient()
+      await client.delete(`/store/products/${id}`)
+    } catch (e) {
+      console.error("상품 삭제 실패:", e)
+      throw e
     }
   },
 }

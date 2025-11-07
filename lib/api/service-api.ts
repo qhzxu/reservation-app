@@ -1,4 +1,4 @@
-import { getApiClient } from "@/lib/api-client"
+import { getApiClient } from "@/lib/api/api-client"
 
 export interface Service {
   id: string           // productId
