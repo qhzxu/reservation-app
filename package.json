@@ -28,6 +28,7 @@
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
     "sockjs-client": "^1.6.1",
+    "stompjs": "^2.3.3",
     "tailwind-merge": "^2.5.5",
     "tailwindcss": "^4.1.9",
     "tailwindcss-animate": "^1.0.7",

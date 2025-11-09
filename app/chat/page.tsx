@@ -1,165 +1,178 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Header } from "@/components/header"
-import { ProtectedRoute } from "@/components/protected-route"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { ProtectedRoute } from "@/components/protected-route"
 import { authApi } from "@/lib/api/auth-api"
 
-interface ChatMessage {
-  id: string
-  userId: string
-  userName: string
-  content: string
-  timestamp: string
+interface ChatRoom {
+  roomId: number
+  userId: number
+  userName : string
+  lastMessage: string | null
+  unreadCount: number
+  userEmail : string
 }
 
-export default function OneToOneChatPage() {
-  const [ws, setWs] = useState<WebSocket | null>(null)
+interface ChatMessage {
+  roomId: number
+  from: number
+  content: string
+  self: boolean
+  senderType: string
+}
+
+export default function ChatTab() {
+  const [rooms, setRooms] = useState<ChatRoom[]>([])
+  const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState("")
-  const [user, setUser] = useState<{ userId: string; userName: string } | null>(null)
+  const socketRef = useRef<WebSocket | null>(null)
 
-  const storeId = "22" // 고정 상점 ID
+  const token = authApi.getToken()
+  const myId = authApi.getUserId() || 0
 
-  // 로그인 유저 정보 가져오기
+  // 1️⃣ 채팅방 목록 불러오기
   useEffect(() => {
-    async function fetchUser() {
-      try {
-        const me = await authApi.me()
-        setUser({ userId: me.userId.toString(), userName: me.userName })
-      } catch (err) {
-        console.error("유저 정보 가져오기 실패:", err)
-      }
-    }
-    fetchUser()
-  }, [])
+    if (!token) return
 
-  // WebSocket 연결
+    fetch("http://localhost:8383/chat/user/rooms", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setRooms(data)
+        else setRooms([])
+      })
+      .catch(err => console.error(err))
+  }, [token])
+
+  // 2️⃣ 선택한 채팅방 메시지 불러오기
   useEffect(() => {
-    if (!user) return
+    if (!selectedRoom || !token) return
 
-    const socket = new WebSocket(`${process.env.NEXT_PUBLIC_API_URL?.replace(/^http/, "ws")}/ws/chat`)
+    fetch(`http://localhost:8383/chat/user/rooms/${selectedRoom.roomId}/messages`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setMessages(data.map((m: any) => ({
+            roomId: selectedRoom.roomId,
+            from: m.senderId,
+            content: m.content,
+            self: m.senderId === myId,
+            senderType: m.senderType
+          })))
+        } else setMessages([])
+      })
+      .catch(err => console.error(err))
+  }, [selectedRoom, token, myId])
 
-    socket.onopen = () => console.log("WebSocket connected")
+  // 3️⃣ WebSocket 연결
+  useEffect(() => {
+    if (!token) return
+    const socket = new WebSocket(`ws://localhost:8383/ws/chat?token=${token}`)
+    socketRef.current = socket
 
-    socket.onmessage = (event) => {
+    socket.onopen = () => console.log("✅ WebSocket 연결 성공")
+    socket.onclose = () => console.log("❌ WebSocket 연결 종료")
+    socket.onerror = e => console.error("WebSocket 에러", e)
+
+    socket.onmessage = event => {
       try {
-        const data = JSON.parse(event.data)
-        // from이 나거나 storeId이면 메시지 추가
-        if (data.from === user.userId || data.from === storeId) {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: Date.now().toString(),
-              userId: data.from,
-              userName: data.from === user.userId ? user.userName : "Store",
-              content: data.content,
-              timestamp: new Date().toISOString(),
-            },
-          ])
+        const msg = JSON.parse(event.data)
+        // 현재 선택한 채팅방 메시지만 추가
+        if (selectedRoom && msg.roomId === selectedRoom.roomId) {
+          setMessages(prev => [...prev, { ...msg, self: msg.from === myId }])
         }
       } catch (err) {
-        console.error("메시지 파싱 실패:", err)
+        console.error(err)
       }
     }
 
-    socket.onclose = () => console.log("WebSocket closed")
-    socket.onerror = (err) => console.error("WebSocket error:", err)
-
-    setWs(socket)
     return () => socket.close()
-  }, [user])
+  }, [token, selectedRoom, myId])
 
-  // 안전하게 메시지 전송
-  const sendMessage = (payload: { to: string; content: string }) => {
-    if (!ws) return
-    if (ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify(payload))
-    } else {
-      ws.addEventListener("open", () => ws.send(JSON.stringify(payload)), { once: true })
-    }
+const sendMessage = () => {
+  if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return
+  if (!input.trim() || !selectedRoom) return
+
+  const message = {
+    to: selectedRoom.userId,
+    content: input.trim(),
+    roomId: selectedRoom.roomId
   }
 
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim() || !user) return
+  socketRef.current.send(JSON.stringify(message))
+  setInput("") // 입력창 초기화만
+}
 
-    const payload = { to: storeId, content: input }
-    sendMessage(payload)
 
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        userId: user.userId,
-        userName: user.userName,
-        content: input,
-        timestamp: new Date().toISOString(),
-      },
-    ])
-    setInput("")
-  }
-
-  if (!user) {
-    return (
-      <ProtectedRoute>
-        <Header />
-        <main className="max-w-7xl mx-auto px-4 py-8 text-center text-gray-500">
-          유저 정보를 불러오는 중...
-        </main>
-      </ProtectedRoute>
-    )
-  }
 
   return (
     <ProtectedRoute>
-      <Header />
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">1:1 채팅 - Store {storeId}</h1>
-        <div className="max-w-2xl mx-auto">
-          <Card className="h-96 flex flex-col">
-            <CardHeader>
-              <CardTitle>채팅</CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 overflow-y-auto space-y-4 mb-4">
-              {messages.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">메시지가 없습니다</p>
-              ) : (
-                messages.map((msg) => (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="max-w-5xl mx-auto mt-8 grid grid-cols-12 gap-4">
+          <div className="col-span-4">
+            <Card className="shadow">
+              <CardContent className="p-4 h-[70vh] overflow-y-auto space-y-2">
+                <h3 className="font-semibold mb-2">채팅방 목록</h3>
+                {rooms.length > 0 ? rooms.map(room => (
                   <div
-                    key={msg.id}
-                    className={`flex ${msg.userId === user.userId ? "justify-end" : "justify-start"}`}
+                    key={room.roomId}
+                    onClick={() => setSelectedRoom(room)}
+                    className={`p-3 rounded-lg cursor-pointer border ${
+                      selectedRoom?.roomId === room.roomId ? "bg-blue-50 border-blue-300" : "hover:bg-gray-100 border-transparent"
+                    }`}
+                    
                   >
-                    <div
-                      className={`max-w-xs px-4 py-2 rounded-lg ${
-                        msg.userId === user.userId ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-900"
-                      }`}
-                    >
-                      <p className="text-sm font-semibold">{msg.userName}</p>
-                      <p>{msg.content}</p>
+                    {/* {room.roomId} */}
+                    {room.userName}
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium"> {room.userEmail} </span>
+                      {room.unreadCount > 0 && (
+                        <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full">{room.unreadCount}</span>
+                      )}
                     </div>
+                    {/* <p className="text-xs text-gray-600 truncate">{room.lastMessage || "메시지 없음"}</p> */}
                   </div>
-                ))
-              )}
-            </CardContent>
+                )) : <div className="text-gray-500 text-sm">채팅방이 없습니다.</div>}
+              </CardContent>
+            </Card>
+          </div>
 
-            <form onSubmit={handleSendMessage} className="flex gap-2 p-4 border-t">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="메시지를 입력하세요..."
-                className="flex-1"
-              />
-              <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                전송
-              </Button>
-            </form>
-          </Card>
+          <div className="col-span-8">
+            <Card className="shadow-lg">
+              <CardContent className="p-4 flex flex-col h-[70vh]">
+                {selectedRoom ? (
+                  <>
+                    <div className="flex-1 overflow-y-auto mb-4 space-y-2">
+                      {messages.map((msg, idx) => (
+                        <div key={idx} className={`flex ${msg.self ? "justify-end" : "justify-start"}`}>
+                          <div className={`rounded-2xl px-4 py-2 max-w-[70%] text-sm ${msg.self ? "bg-blue-500 text-white" : "bg-gray-200 text-gray-900"}`}>
+                            [{msg.senderType}] {msg.content}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Input value={input} onChange={e => setInput(e.target.value)} placeholder="메시지를 입력하세요..." onKeyDown={e => e.key === "Enter" && sendMessage()} />
+                      <Button onClick={sendMessage}>보내기</Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-center items-center flex-1 text-gray-500">채팅방을 선택하세요.</div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </main>
+      </div>
     </ProtectedRoute>
   )
 }

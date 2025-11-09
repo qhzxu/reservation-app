@@ -13,7 +13,7 @@ export default function AdminLoginPage() {
     try {
       const data = await adminAuthApi.login({ email, password })
       localStorage.setItem("adminToken", data.accessToken)
-      router.push("/admin/home")  // 로그인 성공 후 관리자 홈으로 이동
+      router.push("/admin")  // 로그인 성공 후 관리자 홈으로 이동
     } catch (e) {
       console.error("로그인 실패", e)
       alert("로그인 실패")

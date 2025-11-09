@@ -28,7 +28,7 @@ export default function AdminDashboard() {
     },
     {
       title: "채팅 관리",
-      href: "/admin/chats",
+      href: "/admin/chat",
       icon: <FaComments size={26} />,
       gradient: "from-purple-500 to-violet-600",
     },

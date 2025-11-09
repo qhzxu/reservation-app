@@ -1,4 +1,5 @@
 import { getApiClient } from "@/lib/api/api-client"
+import {useAuthStore} from "@/lib/stores/auth-store"
 
 interface LoginRequest {
   email: string
@@ -39,4 +40,16 @@ export const authApi = {
     return response.data
   },
   
+  getToken(): string | null {
+    return useAuthStore.getState().accessToken
+  },
+
+ getUserId(): number | null {
+  const id = useAuthStore.getState().user?.userId;
+  return id ? Number(id) : null;
+}
+
+
+  
+
 }
