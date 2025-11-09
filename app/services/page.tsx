@@ -71,7 +71,7 @@ export default function ServicesPage() {
   if (error) return <div className="text-center py-12 text-red-600">{error}</div>
 
   return (
-    <ProtectedRoute>
+    <>
       <Header />
       <main className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
@@ -125,6 +125,6 @@ export default function ServicesPage() {
           ))}
         </div>
       </main>
-    </ProtectedRoute>
+    </>
   )
 }

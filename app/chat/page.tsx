@@ -15,6 +15,7 @@ interface ChatRoom {
   lastMessage: string | null
   unreadCount: number
   userEmail : string
+  storeName : string
 }
 
 interface ChatMessage {
@@ -132,9 +133,9 @@ const sendMessage = () => {
                     
                   >
                     {/* {room.roomId} */}
-                    {room.userName}
+                     
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium"> {room.userEmail} </span>
+                      <span className="text-sm font-medium"> {room.storeName} </span>
                       {room.unreadCount > 0 && (
                         <span className="text-xs bg-blue-500 text-white px-2 py-1 rounded-full">{room.unreadCount}</span>
                       )}

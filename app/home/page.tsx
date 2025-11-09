@@ -4,9 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Header } from "@/components/header"
-import { ProtectedRoute } from "@/components/protected-route"
-import { useAuthStore } from "@/lib/stores/auth-store"
-import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel"
+import { motion } from "framer-motion"
 
 interface Category {
   categoryId: number
@@ -14,101 +12,134 @@ interface Category {
   is_active: boolean
 }
 
-export default function HomePage() {
-  const { user } = useAuthStore()
+export default function GlowClinicHomePage() {
   const [categories, setCategories] = useState<Category[]>([])
 
   useEffect(() => {
-    // 홈 진입 시 카테고리 fetch
     fetch("http://localhost:8383/product/category")
       .then(res => res.json())
       .then(data => setCategories(data))
       .catch(err => console.error("카테고리 로딩 실패:", err))
   }, [])
 
-  // 샘플 서비스 목록
-  // const services = [
-  //   { name: "헤어샵 예약", desc: "전문 미용실 예약 서비스", href: "/services/1" },
-  //   { name: "PT 예약", desc: "헬스 트레이너와 1:1 예약", href: "/services/2" },
-  //   { name: "영어 과외", desc: "원어민 영어 과외 신청", href: "/services/3" },
-  //   { name: "피부관리", desc: "피부 전문가와 예약", href: "/services/4" },
-  //   { name: "요가 클래스", desc: "요가 강사와 그룹 수업", href: "/services/5" },
-  //   { name: "수학 과외", desc: "수학 전문 과외 신청", href: "/services/6" },
-  // ]
-
   return (
-    <ProtectedRoute>
+    <>
       <Header />
       <main className="min-h-screen bg-gray-50 flex flex-col items-center p-0">
+
         {/* 배너 */}
-        <section className="w-full h-48 bg-gradient-to-r from-blue-500 to-green-400 flex items-center justify-center mb-8">
-          <h1 className="text-4xl font-bold text-white drop-shadow-lg">
-            {user ? `${user.userName}님, 환영합니다!` : "환영합니다!"}
-          </h1>
-        </section>
+      <section className="relative w-full h-[340px] overflow-hidden mb-16">
+  <img
+    src="/img_main_clinic01.png"
+    alt="Glow Clinic 배너"
+    className="absolute inset-0 w-full h-full object-cover object-center opacity-80 pointer-events-none"
+  />
+<div className="absolute inset-0 bg-black opacity-10" />
 
-        {/* 카테고리 */}
-        <section className="w-full max-w-4xl mx-auto px-4 mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">카테고리</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link
-            href="/services"
-            className="bg-white rounded-lg shadow flex flex-col items-center justify-center py-6 hover:bg-blue-50 transition"
-            >
-            <span className="text-lg font-semibold text-gray-700">전체</span>
-            </Link>
-            {categories.map((cat) => (
-           <Link
-              key={cat.categoryId}
-              href={`/services?catId=${cat.categoryId}&catName=${encodeURIComponent(cat.categoryName)}`} // ID + 이름
-              className="bg-white rounded-lg shadow flex flex-col items-center justify-center py-6 hover:bg-blue-50 transition"
-            >
-              <span className="text-lg font-semibold text-gray-700">{cat.categoryName}</span>
-            </Link>
+  <motion.div
+    initial={{ opacity: 0, y: 40 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.8 }}
+    className="relative z-10 flex flex-col items-center justify-center h-full text-center text-white"
+  >
+    <h1 className="text-4xl md:text-5xl font-extrabold drop-shadow-lg mb-3">
+      Clinic에 오신 것을 환영합니다
+    </h1>
+    <p className="text-lg md:text-xl text-gray-100 font-light max-w-xl">
+      안전하고 전문적인 피부 시술, 지금 예약하세요.
+    </p>
+    <div className="mt-6">
+      <Link href="/services">
+        <Button className="bg-white text-sky-600 font-semibold px-6 py-5 text-lg rounded-xl hover:bg-gray-100 shadow">
+          시술 예약 바로가기
+        </Button>
+      </Link>
+    </div>
+  </motion.div>
+</section>
 
+
+        {/* 시술 카테고리 */}
+        <section className="w-full max-w-6xl mx-auto px-6 mb-20">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+            시술 카테고리
+          </h2>
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={{
+              hidden: { opacity: 0, y: 40 },
+              visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+            }}
+            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6"
+          >
+            {categories.map(cat => (
+              <Link
+                key={cat.categoryId}
+                href={`/services?catId=${cat.categoryId}`}
+                className="bg-white rounded-2xl shadow-md flex flex-col items-center justify-center py-8 hover:bg-sky-50 hover:shadow-lg transition"
+              >
+                <span className="text-lg font-semibold text-gray-700">
+                  {cat.categoryName}
+                </span>
+              </Link>
             ))}
-            </div>
-
+          </motion.div>
         </section>
 
-        {/* 서비스 목록 (캐러셀) */}
-        {/* <section className="w-full max-w-4xl mx-auto px-4 mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold text-gray-800">추천 서비스</h2>
-            <Link href="/services">
-              <Button variant="outline" className="text-blue-600 border-blue-300">더보기</Button>
-            </Link>
+        {/* 인기 시술 */}
+        <section className="w-full max-w-6xl mx-auto px-6 mb-20">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+            인기 시술
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              { name: "여드름 치료", desc: "피부 재생과 트러블 완화 프로그램" },
+              { name: "보톡스 시술", desc: "탄력 있는 피부를 위한 주름 개선" },
+              { name: "레이저 미백", desc: "맑고 깨끗한 피부 톤 개선" },
+            ].map((svc, i) => (
+              <motion.div
+                key={svc.name}
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.2 }}
+                className="bg-white rounded-2xl shadow-md p-8 hover:shadow-lg hover:bg-sky-50 transition flex flex-col items-start"
+              >
+                <h3 className="text-xl font-bold text-sky-600 mb-2">
+                  {svc.name}
+                </h3>
+                <p className="text-gray-700 mb-4">{svc.desc}</p>
+                <Link href="/services">
+                  <Button className="bg-sky-500 hover:bg-sky-600 text-white">
+                    예약하기
+                  </Button>
+                </Link>
+              </motion.div>
+            ))}
           </div>
-          <Carousel opts={{ loop: true }}>
-            <CarouselContent>
-              {services.map((svc) => (
-                <CarouselItem key={svc.name} className="md:basis-1/3 basis-full">
-                  <Link href={svc.href} className="bg-white rounded-lg shadow p-6 flex flex-col justify-between hover:bg-green-50 transition h-full">
-                    <span className="text-xl font-bold text-blue-600 mb-2">{svc.name}</span>
-                    <span className="text-gray-700 mb-4">{svc.desc}</span>
-                    <Button className="bg-blue-500 hover:bg-blue-600 w-full">예약하기</Button>
-                  </Link>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
-          </Carousel>
-        </section> */}
+        </section>
 
-        {/* 바로가기 */}
-        {/* <section className="w-full max-w-4xl mx-auto px-4 mb-12">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">빠른 이동</h2>
-          <div className="flex gap-4">
-            <Link href="/reservations">
-              <Button className="bg-green-600 hover:bg-green-700">예약 내역 보기</Button>
-            </Link>
-            <Link href="/profile">
-              <Button className="bg-gray-600 hover:bg-gray-700">내 정보</Button>
-            </Link>
-          </div>
-        </section> */}
+        {/* 예약 안내 */}
+        <section className="w-full bg-white border-t py-12 text-center">
+          <h3 className="text-xl font-semibold text-gray-800 mb-3">
+            첫 예약이신가요?
+          </h3>
+          <p className="text-gray-600 mb-5">
+            로그인 후 간단하게 원하는 시술과 날짜를 선택하면 예약이 완료됩니다.
+          </p>
+          <Link href="/login">
+            <Button className="bg-teal-500 hover:bg-teal-600 text-white">
+              지금 예약하러 가기
+            </Button>
+          </Link>
+        </section>
+
+        {/* 푸터 */}
+        <footer className="w-full border-t py-8 text-center text-gray-500 text-sm">
+          © 2025 Clinic 
+        </footer>
       </main>
-    </ProtectedRoute>
+    </>
   )
 }

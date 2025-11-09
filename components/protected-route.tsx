@@ -11,8 +11,18 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) {
   const router = useRouter();
-  const { user, accessToken } = useAuthStore();
+  const { user, accessToken, clearAuth } = useAuthStore();
   const [hydrated, setHydrated] = useState(false);
+
+  // JWT 만료 체크
+  function isTokenExpired(token: string) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.exp * 1000 < Date.now();
+    } catch {
+      return true;
+    }
+  }
 
   useEffect(() => {
     setHydrated(true);
@@ -21,7 +31,8 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
   useEffect(() => {
     if (!hydrated) return;
 
-    if (!accessToken || !user) {
+    if (!accessToken || !user || isTokenExpired(accessToken)) {
+      clearAuth();
       router.replace("/login");
       return;
     }
@@ -30,10 +41,14 @@ export function ProtectedRoute({ children, requiredRole }: ProtectedRouteProps) 
       router.replace("/");
       return;
     }
-  }, [hydrated, accessToken, user, requiredRole, router]);
+  }, [hydrated, accessToken, user, requiredRole, router, clearAuth]);
 
   if (!hydrated || !accessToken || (requiredRole && user?.role !== requiredRole)) {
-    return <div className="flex items-center justify-center min-h-screen">로딩 중...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <span className="animate-pulse text-gray-500">로딩 중...</span>
+      </div>
+    );
   }
 
   return <>{children}</>;
